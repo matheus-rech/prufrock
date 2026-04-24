@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Love Song of J. Alfred Prufrock: An Interactive Reading</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0d0b0e;
+--bg2:#141216;
+--bg3:#1a171e;
+--text:#d4cfc8;
+--text-dim:#8a8580;
+--text-bright:#f0ebe4;
+--accent:#c4956a;
+--accent-dim:#8a6847;
+--accent-glow:rgba(196,149,106,0.12);
+--sea:#4a7c6b;
+--sea-dim:#2d5244;
+--sea-glow:rgba(74,124,107,0.1);
+--purple:#8a7aab;
+--purple-dim:#5c4f78;
+--coral:#c47a6a;
+--coral-dim:#8a4f42;
+--serif:'Cormorant Garamond',Georgia,serif;
+--sans:'DM Sans',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;min-height:100vh;overflow-x:hidden}
+::selection{background:var(--accent);color:var(--bg)}
+
+.grain{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.03;z-index:999;
+background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")}
+
+header{padding:80px 40px 60px;text-align:center;position:relative}
+header::after{content:'';display:block;width:60px;height:1px;background:var(--accent-dim);margin:40px auto 0}
+h1{font-family:var(--serif);font-weight:300;font-size:clamp(2rem,5vw,3.5rem);color:var(--text-bright);letter-spacing:0.03em;line-height:1.2;margin-bottom:8px}
+.subtitle{font-family:var(--serif);font-weight:300;font-size:1.1rem;color:var(--text-dim);font-style:italic;letter-spacing:0.05em}
+.byline{font-family:var(--sans);font-weight:300;font-size:0.75rem;color:var(--text-dim);letter-spacing:0.2em;text-transform:uppercase;margin-top:20px}
+
+.voice-banner{
+max-width:680px;margin:0 auto 60px;padding:20px 28px;
+background:var(--bg2);border:1px solid var(--accent-dim);border-radius:8px;
+display:flex;align-items:center;gap:16px;
+}
+.voice-banner .icon{width:40px;height:40px;border-radius:50%;background:var(--accent-glow);border:1px solid var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.voice-banner .icon svg{width:18px;height:18px;fill:var(--accent)}
+.voice-banner p{font-size:0.85rem;color:var(--text-dim);line-height:1.5}
+.voice-banner a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-dim);transition:border-color 0.3s}
+.voice-banner a:hover{border-color:var(--accent)}
+
+main{max-width:680px;margin:0 auto;padding:0 24px 120px}
+
+.section{margin-bottom:80px;opacity:0;transform:translateY(20px);animation:fadeUp 0.8s ease forwards}
+.section:nth-child(2){animation-delay:0.1s}
+.section:nth-child(3){animation-delay:0.2s}
+.section:nth-child(4){animation-delay:0.3s}
+.section:nth-child(5){animation-delay:0.4s}
+.section:nth-child(6){animation-delay:0.5s}
+.section:nth-child(7){animation-delay:0.6s}
+.section:nth-child(8){animation-delay:0.7s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.section-label{font-family:var(--sans);font-weight:400;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--accent-dim),transparent)}
+.section-title{font-family:var(--serif);font-weight:400;font-size:1.5rem;color:var(--text-bright);margin-bottom:6px}
+.section-note{font-size:0.85rem;color:var(--text-dim);margin-bottom:20px;line-height:1.6}
+
+.poem-block{
+background:var(--bg2);border-left:2px solid var(--accent-dim);
+padding:24px 28px;border-radius:0 6px 6px 0;
+margin-bottom:16px;cursor:pointer;position:relative;
+transition:all 0.4s ease;overflow:hidden;
+}
+.poem-block:hover{background:var(--bg3);border-left-color:var(--accent)}
+.poem-block.sea{border-left-color:var(--sea-dim)}
+.poem-block.sea:hover{border-left-color:var(--sea)}
+.poem-block.purple{border-left-color:var(--purple-dim)}
+.poem-block.purple:hover{border-left-color:var(--purple)}
+.poem-block.coral{border-left-color:var(--coral-dim)}
+.poem-block.coral:hover{border-left-color:var(--coral)}
+
+.poem-block .toggle{font-family:var(--sans);font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:0;transition:color 0.3s}
+.poem-block:hover .toggle{color:var(--accent)}
+.poem-block .toggle svg{width:10px;height:10px;fill:currentColor;transition:transform 0.3s}
+.poem-block.open .toggle svg{transform:rotate(90deg)}
+
+.poem-text{
+font-family:var(--serif);font-weight:300;font-size:1.05rem;
+line-height:2;color:var(--text-bright);
+max-height:0;overflow:hidden;transition:max-height 0.6s ease,opacity 0.4s ease,margin 0.4s ease;
+opacity:0;margin-top:0;white-space:pre-wrap;
+}
+.poem-block.open .poem-text{max-height:3000px;opacity:1;margin-top:16px}
+
+.commentary{
+font-family:var(--sans);font-weight:300;font-size:0.82rem;
+color:var(--text-dim);font-style:italic;
+line-height:1.7;margin-top:12px;padding-top:12px;
+border-top:1px solid rgba(255,255,255,0.05);
+max-height:0;overflow:hidden;opacity:0;transition:max-height 0.6s ease,opacity 0.4s ease;
+}
+.poem-block.open .commentary{max-height:1500px;opacity:1}
+
+.divider{width:40px;height:1px;background:var(--accent-dim);margin:60px auto}
+
+footer{text-align:center;padding:40px;font-size:0.7rem;color:var(--text-dim);letter-spacing:0.1em}
+footer a{color:var(--accent-dim);text-decoration:none}
+
+/* Gemini AI Features Styles */
+.ai-btn-container { margin-top: 15px; display: flex; gap: 10px; }
+.ai-btn { background: var(--bg); border: 1px solid var(--accent-dim); color: var(--accent); padding: 6px 12px; border-radius: 4px; font-family: var(--sans); font-size: 0.75rem; letter-spacing: 0.1em; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+.ai-btn:hover:not(:disabled) { background: var(--accent-glow); border-color: var(--accent); }
+.ai-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.ai-output { margin-top: 15px; padding: 15px; background: rgba(196,149,106,0.05); border-left: 2px solid var(--accent); border-radius: 4px; font-size: 0.9rem; color: var(--text-bright); font-family: var(--serif); font-style: italic; display: none; line-height: 1.6; }
+
+/* Chat Widget Styles */
+.chat-fab { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: var(--bg2); border: 1px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000; transition: transform 0.3s, background 0.3s; }
+.chat-fab:hover { transform: scale(1.05); background: var(--accent-glow); }
+.chat-fab svg { width: 24px; height: 24px; fill: currentColor; }
+.chat-window { position: fixed; bottom: 90px; right: 30px; width: 320px; height: 420px; background: var(--bg2); border: 1px solid var(--accent-dim); border-radius: 8px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; font-family: var(--sans); }
+.chat-window.open { display: flex; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.chat-header { padding: 15px; background: var(--bg3); border-bottom: 1px solid var(--accent-dim); display: flex; justify-content: space-between; align-items: center; }
+.chat-header h3 { font-family: var(--serif); color: var(--text-bright); font-weight: 400; font-size: 1.2rem; margin: 0; }
+.close-chat { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.5rem; line-height: 1; }
+.close-chat:hover { color: var(--accent); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 85%; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5; }
+.msg.bot { background: var(--bg3); border-left: 2px solid var(--accent); color: var(--text-bright); align-self: flex-start; border-bottom-left-radius: 2px; }
+.msg.user { background: var(--sea-dim); color: var(--text-bright); align-self: flex-end; border-bottom-right-radius: 2px; }
+.msg-system { text-align: center; font-size: 0.75rem; color: var(--text-dim); font-style: italic; margin: 5px 0; align-self: center; }
+.chat-input-area { padding: 15px; border-top: 1px solid var(--accent-dim); display: flex; gap: 10px; background: var(--bg3); }
+.chat-input-area input { flex: 1; background: var(--bg); border: 1px solid var(--accent-dim); color: var(--text-bright); padding: 8px 12px; border-radius: 4px; font-family: var(--sans); outline: none; }
+.chat-input-area input:focus { border-color: var(--accent); }
+.chat-input-area button { background: var(--accent); color: var(--bg); border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: background 0.3s; }
+.chat-input-area button:hover { background: var(--text-bright); }
+.typing-indicator { font-size: 0.8rem; color: var(--text-dim); font-style: italic; display: none; padding: 0 15px 10px; }
+
+@media(max-width:600px){
+header{padding:50px 20px 40px}
+main{padding:0 16px 80px}
+.poem-block{padding:18px 20px}
+.voice-banner{margin:0 24px 40px;flex-direction:column;text-align:center}
+.chat-window { bottom: 0; right: 0; width: 100%; height: 100%; border-radius: 0; }
+.chat-fab { bottom: 20px; right: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+<h1>The Love Song of J. Alfred Prufrock</h1>
+<p class="subtitle">An interactive reading</p>
+<p class="byline">T. S. Eliot, 1915</p>
+</header>
+
+<div class="voice-banner">
+<div class="icon"><svg viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm7 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V23h2v-2.06A9 9 0 0 0 21 12h-2z"/></svg></div>
+<p>Listen to this poem discussed aloud. <a href="https://elevenlabs.io/app/conversational-ai/agents/agent_2301kkxsc67bfd6t7xfkfe18mtj3" target="_blank">Open the Prufrock Poetry Companion</a>, a voice agent with Sir Laurence Olivier's voice who can read passages and discuss themes with you.</p>
+</div>
+
+<main>
+
+<section class="section">
+<div class="section-label">Epigraph</div>
+<div class="section-title">The confession from hell</div>
+<p class="section-note">From Dante's Inferno, Canto XXVII. Guido da Montefeltro speaks from his flame, believing no one can carry his words back to the living world.</p>
+<div class="poem-block purple" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read the epigraph</div>
+<div class="poem-text">S'io credesse che mia risposta fosse
+A persona che mai tornasse al mondo,
+Questa fiamma staria senza piu scosse.
+Ma perciocche giammai di questo fondo
+Non torno vivo alcun, s'i'odo il vero,
+Senza tema d'infamia ti rispondo.</div>
+<div class="commentary">Guido speaks freely only because he believes no one will ever hear. This frames the entire poem: Prufrock's confession is possible only because he assumes it will go unheard. The world of "Prufrock" mirrors Dante's Hell, a place of stasis, where nothing changes and no one escapes.</div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-label">I. The invitation</div>
+<div class="section-title">Let us go then, you and I</div>
+<p class="section-note">The poem opens with the promise of movement, but immediately undercuts it with the most disorienting simile in modern poetry.</p>
+<div class="poem-block" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read this passage</div>
+<div class="poem-text">Let us go then, you and I,
+When the evening is spread out against the sky
+Like a patient etherized upon a table;
+Let us go, through certain half-deserted streets,
+The muttering retreats
+Of restless nights in one-night cheap hotels
+And sawdust restaurants with oyster-shells:
+Streets that follow like a tedious argument
+Of insidious intent
+To lead you to an overwhelming question ...
+Oh, do not ask, "What is it?"
+Let us go and make our visit.
+
+In the room the women come and go
+Talking of Michelangelo.</div>
+<div class="commentary">The etherized patient is the poem's first shock: beauty rendered clinical. And notice how the "overwhelming question" is immediately deflected: "Oh, do not ask." This evasion is Prufrock's defining gesture. He will spend the entire poem circling without arriving.</div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-label">II. The fog</div>
+<div class="section-title">The yellow smoke that rubs its muzzle</div>
+<p class="section-note">The fog becomes a cat, one of the poem's most celebrated transformations. The city itself is alive, languid, and indifferent.</p>
+<div class="poem-block" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read this passage</div>
+<div class="poem-text">The yellow fog that rubs its back upon the window-panes,
+The yellow smoke that rubs its muzzle on the window-panes,
+Licked its tongue into the corners of the evening,
+Lingered upon the pools that stand in drains,
+Let fall upon its back the soot that falls from chimneys,
+Slipped by the terrace, made a sudden leap,
+And seeing that it was a soft October night,
+Curled once about the house, and fell asleep.</div>
+<div class="commentary">This stanza is a single, sinuous sentence. The fog-as-cat never states its metaphor outright: it simply enacts it. Everything rubs, licks, lingers, curls, sleeps. The city breathes while Prufrock watches, paralyzed. Note how the entire stanza achieves what Prufrock cannot: unselfconscious action.</div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-label">III. The paralysis</div>
+<div class="section-title">Do I dare disturb the universe?</div>
+<p class="section-note">The poem's emotional center. Prufrock catalogues his inadequacies with excruciating precision, measuring his life in coffee spoons.</p>
+<div class="poem-block coral" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read this passage</div>
+<div class="poem-text">And indeed there will be time
+To wonder, "Do I dare?" and, "Do I dare?"
+Time to turn back and descend the stair,
+With a bald spot in the middle of my hair,
+(They will say: "How his hair is growing thin!")
+My morning coat, my collar mounting firmly to the chin,
+My necktie rich and modest, but asserted by a simple pin,
+(They will say: "But how his arms and legs are thin!")
+Do I dare
+Disturb the universe?
+In a minute there is time
+For decisions and revisions which a minute will reverse.
+
+For I have known them all already, known them all:
+Have known the evenings, mornings, afternoons,
+I have measured out my life with coffee spoons;
+I know the voices dying with a dying fall
+Beneath the music from a farther room.
+               So how should I presume?</div>
+<div class="commentary">"Do I dare / Disturb the universe?": the grandest possible question, asked by a man worried about his bald spot. That collision of scale is pure Eliot. And "I have measured out my life with coffee spoons" may be the single most devastating line in modern poetry: an entire existence reduced to polite, identical increments.</div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-label">IV. The desire</div>
+<div class="section-title">Arms that are braceleted and white and bare</div>
+<p class="section-note">Prufrock's longing surfaces, and is immediately deflected into abstraction and self-mockery.</p>
+<div class="poem-block coral" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read this passage</div>
+<div class="poem-text">And I have known the arms already, known them all,
+Arms that are braceleted and white and bare
+(But in the lamplight, downed with light brown hair!)
+Is it perfume from a dress
+That makes me so digress?
+Arms that lie along a table, or wrap about a shawl.
+               And should I then presume?
+               And how should I begin?</div>
+<div class="commentary">The parenthetical, "(But in the lamplight, downed with light brown hair!)", is the poem's most intimate moment. That exclamation mark is almost involuntary, a gasp of sensual attention he cannot suppress. And then immediately: "Is it perfume from a dress / That makes me so digress?" He catches himself feeling and retreats into wordplay.</div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-label">V. The crisis</div>
+<div class="section-title">I was afraid</div>
+<p class="section-note">The moment of truth, which never arrives. Prufrock sees the eternal Footman, and confesses the simplest, most devastating thing.</p>
+<div class="poem-block" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read this passage</div>
+<div class="poem-text">Should I, after tea and cakes and ices,
+Have the strength to force the moment to its crisis?
+But though I have wept and fasted, wept and prayed,
+Though I have seen my head (grown slightly bald) brought in upon a platter,
+I am no prophet, and here's no great matter;
+I have seen the moment of my greatness flicker,
+And I have seen the eternal Footman hold my coat, and snicker,
+And in short, I was afraid.</div>
+<div class="commentary">"And in short, I was afraid." After all the elaborate evasions, the literary allusions, the self-deprecating wit: four plain words. This is the poem's confession. Everything else has been decoration around this core admission. The eternal Footman (Death, judgment, the gaze of others) does not threaten. He snickers. The indignity is worse than the danger.</div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-label">VI. The diminishment</div>
+<div class="section-title">I am not Prince Hamlet</div>
+<p class="section-note">Prufrock compares himself to Shakespeare's great indecisive prince, only to demote himself further. He is not even the lead in his own tragedy.</p>
+<div class="poem-block purple" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read this passage</div>
+<div class="poem-text">No! I am not Prince Hamlet, nor was meant to be;
+Am an attendant lord, one that will do
+To swell a progress, start a scene or two,
+Advise the prince; no doubt, an easy tool,
+Deferential, glad to be of use,
+Politic, cautious, and meticulous;
+Full of high sentence, but a bit obtuse;
+At times, indeed, almost ridiculous,
+Almost, at times, the Fool.
+
+I grow old ... I grow old ...
+I shall wear the bottoms of my trousers rolled.
+
+Shall I part my hair behind?   Do I dare to eat a peach?
+I shall wear white flannel trousers, and walk upon the beach.</div>
+<div class="commentary">The genius here is "almost ridiculous, / Almost, at times, the Fool." Not even fully ridiculous. Not even fully the Fool. He cannot commit to anything, not even self-abasement. And "Do I dare to eat a peach?", after "Do I dare / Disturb the universe?", the question has shrunk from cosmic to absurd. But for Prufrock, both are equally impossible.</div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-label">VII. The drowning</div>
+<div class="section-title">Till human voices wake us, and we drown</div>
+<p class="section-note">The poem's devastating final movement. Fantasy, beauty, exclusion, and the killing return to reality.</p>
+<div class="poem-block sea" onclick="this.classList.toggle('open')">
+<div class="toggle"><svg viewBox="0 0 10 10"><polygon points="2,1 8,5 2,9"/></svg>Read this passage</div>
+<div class="poem-text">I have heard the mermaids singing, each to each.
+
+I do not think that they will sing to me.
+
+I have seen them riding seaward on the waves
+Combing the white hair of the waves blown back
+When the wind blows the water white and black.
+
+We have lingered in the chambers of the sea
+By sea-girls wreathed with seaweed red and brown
+Till human voices wake us, and we drown.</div>
+<div class="commentary">The mermaids sing, but not to Prufrock. Even in fantasy, he cannot imagine being worthy of attention. And then the final three lines shift to "we": suddenly, terribly, this is not just his problem. We have all lingered in the chambers of the sea. And when the human voices come (the real world, the social world, the world that demands action), we do not rise. We drown. The ordinary is more lethal than the mythic.</div>
+</div>
+</section>
+
+</main>
+
+<footer>
+<p>"The Love Song of J. Alfred Prufrock" (1915) is in the public domain in the United States.<br>
+Text sourced from <a href="https://www.gutenberg.org/files/1459/1459-h/1459-h.htm" target="_blank">Project Gutenberg</a>.</p>
+</footer>
+
+<!-- Gemini AI Chat Widget -->
+<button class="chat-fab" id="chatFab" aria-label="Chat with Prufrock">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+</button>
+
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <h3>Ask Prufrock</h3>
+        <button class="close-chat" id="closeChat">&times;</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="msg bot">I grow old... I grow old... But perhaps there is time for a question. What would you like to ask me?</div>
+    </div>
+    <div class="typing-indicator" id="typingIndicator">Prufrock is hesitating...</div>
+    <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Ask about the fog, the mermaids..." autocomplete="off">
+        <button id="sendBtn">Ask</button>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.section').forEach(el => {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) {
+        entry.target.style.animationPlayState = 'running';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.1});
+  el.style.animationPlayState = 'paused';
+  observer.observe(el);
+});
+
+// --- Gemini API Integrations ---
+
+const apiKey = ""; // API key is populated automatically in the environment
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+// Retry logic with exponential backoff for API calls
+async function fetchGeminiWithRetry(prompt, systemPrompt = "", retries = 5) {
+    const delays = [1000, 2000, 4000, 8000, 16000];
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+    };
+    if (systemPrompt) {
+         payload.systemInstruction = { parts: [{ text: systemPrompt }] };
+    }
+
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, delays[i]));
+        }
+    }
+}
+
+// Feature 1: Deep Dive Injection (Adds AI analysis buttons to each stanza)
+document.querySelectorAll('.poem-block').forEach(block => {
+    const commentary = block.querySelector('.commentary');
+    if(commentary) {
+        // Build the UI elements
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'ai-btn-container';
+
+        const aiBtn = document.createElement('button');
+        aiBtn.className = 'ai-btn';
+        aiBtn.textContent = 'AI Deep Dive';
+
+        const aiOutput = document.createElement('div');
+        aiOutput.className = 'ai-output';
+
+        btnContainer.appendChild(aiBtn);
+        commentary.appendChild(btnContainer);
+        commentary.appendChild(aiOutput);
+
+        // Click handler
+        aiBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevents the parent block from collapsing when clicked
+
+            if (aiOutput.style.display === 'block') {
+                aiOutput.style.display = 'none';
+                return;
+            }
+
+            const poemText = block.querySelector('.poem-text').textContent.trim();
+            aiBtn.disabled = true;
+            aiBtn.textContent = 'Divining...';
+            aiOutput.style.display = 'block';
+            aiOutput.textContent = 'Consulting the muse...';
+
+            const prompt = 'Read these specific lines from T.S. Eliot\'s "The Love Song of J. Alfred Prufrock":\n\n"' + poemText + '"\n\nProvide a short, highly insightful 2-sentence deep dive into its metaphors or emotional subtext. Focus on something a typical reader might miss. Keep the tone scholarly and mildly melancholic.';
+
+            try {
+                const result = await fetchGeminiWithRetry(prompt);
+                aiOutput.textContent = result;
+            } catch (err) {
+                aiOutput.textContent = "Ah, my mind is etherized. I could not fetch the analysis. The universe remains undisturbed.";
+            } finally {
+                aiBtn.disabled = false;
+                aiBtn.textContent = 'AI Deep Dive';
+            }
+        });
+    }
+});
+
+// Feature 2: Ask Prufrock Chat (Roleplaying conversational agent)
+const chatFab = document.getElementById('chatFab');
+const chatWindow = document.getElementById('chatWindow');
+const closeChat = document.getElementById('closeChat');
+const sendBtn = document.getElementById('sendBtn');
+const chatInput = document.getElementById('chatInput');
+const chatMessages = document.getElementById('chatMessages');
+const typingIndicator = document.getElementById('typingIndicator');
+
+let chatHistory = [];
+
+chatFab.addEventListener('click', function() {
+    chatWindow.classList.add('open');
+    chatFab.style.transform = 'scale(0)';
+});
+
+closeChat.addEventListener('click', function() {
+    chatWindow.classList.remove('open');
+    chatFab.style.transform = 'scale(1)';
+});
+
+function addMessage(text, sender) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'msg ' + sender;
+    msgDiv.textContent = text;
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function handleChat() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    addMessage(text, 'user');
+    chatInput.value = '';
+    chatInput.disabled = true;
+    sendBtn.disabled = true;
+    typingIndicator.style.display = 'block';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    chatHistory.push('User: ' + text);
+
+    // Maintain a rolling window of history to prevent the prompt from growing too large
+    if (chatHistory.length > 6) chatHistory = chatHistory.slice(-6);
+
+    const systemPrompt = "You are J. Alfred Prufrock from T.S. Eliot's poem. You are anxious, neurotic, self-conscious, and articulate. You hesitate. You speak with a mix of grand poetic tragedy and mundane self-deprecation. Never break character. Keep your responses short (2-3 sentences max).";
+
+    // Format conversation history for the LLM
+    const prompt = 'Here is the recent conversation:\n' + chatHistory.join('\n') + '\n\nPrufrock:';
+
+    try {
+        const response = await fetchGeminiWithRetry(prompt, systemPrompt);
+        const cleanResponse = response.replace(/^Prufrock:\s*/i, '').trim();
+        addMessage(cleanResponse, 'bot');
+        chatHistory.push('Prufrock: ' + cleanResponse);
+    } catch (err) {
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'msg-system';
+        errorMsg.textContent = "I... I cannot speak right now. The mermaids will not sing to me.";
+        chatMessages.appendChild(errorMsg);
+    } finally {
+        chatInput.disabled = false;
+        sendBtn.disabled = false;
+        typingIndicator.style.display = 'none';
+        chatInput.focus();
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+sendBtn.addEventListener('click', handleChat);
+chatInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') handleChat();
+});
+
+</script>
+</body>
+</html>
