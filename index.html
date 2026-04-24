@@ -378,32 +378,23 @@ document.querySelectorAll('.section').forEach(el => {
 
 // --- Gemini API Integrations ---
 
-const apiKey = ""; // API key is populated automatically in the environment
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-// Retry logic with exponential backoff for API calls
-async function fetchGeminiWithRetry(prompt, systemPrompt = "", retries = 5) {
-    const delays = [1000, 2000, 4000, 8000, 16000];
-    const payload = {
-        contents: [{ parts: [{ text: prompt }] }],
-    };
-    if (systemPrompt) {
-         payload.systemInstruction = { parts: [{ text: systemPrompt }] };
-    }
-
-    for (let i = 0; i < retries; i++) {
+// AI proxy: calls Netlify function which routes to OpenRouter -> Gemini
+async function fetchAI(prompt, systemPrompt, retries) {
+    retries = retries || 3;
+    var delays = [1000, 3000, 6000];
+    for (var i = 0; i < retries; i++) {
         try {
-            const response = await fetch(API_URL, {
+            var response = await fetch("/api/ai", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ prompt: prompt, systemPrompt: systemPrompt || "" })
             });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
-        } catch (error) {
-            if (i === retries - 1) throw error;
-            await new Promise(resolve => setTimeout(resolve, delays[i]));
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            var data = await response.json();
+            return data.text;
+        } catch (err) {
+            if (i === retries - 1) throw err;
+            await new Promise(function(resolve) { setTimeout(resolve, delays[i]); });
         }
     }
 }
@@ -445,7 +436,7 @@ document.querySelectorAll('.poem-block').forEach(block => {
             const prompt = 'Read these specific lines from T.S. Eliot\'s "The Love Song of J. Alfred Prufrock":\n\n"' + poemText + '"\n\nProvide a short, highly insightful 2-sentence deep dive into its metaphors or emotional subtext. Focus on something a typical reader might miss. Keep the tone scholarly and mildly melancholic.';
 
             try {
-                const result = await fetchGeminiWithRetry(prompt);
+                const result = await fetchAI(prompt);
                 aiOutput.textContent = result;
             } catch (err) {
                 aiOutput.textContent = "Ah, my mind is etherized. I could not fetch the analysis. The universe remains undisturbed.";
@@ -508,7 +499,7 @@ async function handleChat() {
     const prompt = 'Here is the recent conversation:\n' + chatHistory.join('\n') + '\n\nPrufrock:';
 
     try {
-        const response = await fetchGeminiWithRetry(prompt, systemPrompt);
+        const response = await fetchAI(prompt, systemPrompt);
         const cleanResponse = response.replace(/^Prufrock:\s*/i, '').trim();
         addMessage(cleanResponse, 'bot');
         chatHistory.push('Prufrock: ' + cleanResponse);
